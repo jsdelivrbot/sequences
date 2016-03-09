@@ -2,6 +2,7 @@
     (:require [re-frame.core :as re-frame]
               [sequences.synthesis :as syn]
               [leipzig.temperament :as temperament]
+              [leipzig.melody :as melody]
               [sequences.db :as db]))
 
 ;;¯\_(ツ)_/¯
@@ -25,14 +26,14 @@
 (re-frame/register-handler
   :initialize-db
   (fn  [_ _]
-    db/default-db)) 
+    db/default-db))
 
 (re-frame/register-handler
   :start
   (fn [db [_, notes]]
     (let [context (audio-context)]
       (play! context notes)
-      (merge db {:playing? true :notes notes :sync (Date.now) :audiocontext context}))))
+      (merge db {:playing? true :sync (Date.now) :audiocontext context}))))
 
 (re-frame/register-handler
   :stop
