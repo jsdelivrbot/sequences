@@ -35,7 +35,8 @@
      (melody/where :pitch scale/G)))
 
 (defn setup []
-  (q/frame-rate 60)
+  (q/frame-rate 30)
+  (q/no-loop)
   (let [notes track
         dots (map #(vec [(/ (* (:pitch %) (:time %)) 20) (* (:time %) 2)]) notes)]
     {:dots dots
@@ -62,12 +63,14 @@
         sync (re-frame/subscribe [:sync])
         playing? (re-frame/subscribe [:playing?])
         relative-time (-> (Date.now) (- @sync) (mod (* 1000 (melody/duration notes))) (/ 1000))
-        marked (filter #(and @playing? (<= (/ (first (rest %)) 3) relative-time)) dots)]
+        marked (map #(if (and @playing? (<= (/ (first (rest %)) 10) relative-time)) (conj % :played) %) dots)]
     (loop [curr (first marked)
            tail (rest marked)
            prev nil]
-      (let [[x y] (dot->coord curr)]
-        (q/ellipse x y 1 1)
+      (let [[x y] (dot->coord curr)
+            paint (if (= (last curr) :played) (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255)) 255)]
+        (q/stroke paint)
+        (q/fill paint)
         (when prev
           (let [[x2 y2] (dot->coord prev)]
             (q/line x y x2 y2))))
@@ -75,11 +78,11 @@
         (recur (first tail)
                (rest tail)
                curr)))))
-
+             
 (defn tailspin []
   (q/sketch
-    :host "graph"
-    :size [500 500]
+    :host "canvas"
+    :size [700 500]
     :setup setup
     :update update-state
     :draw draw-state
@@ -90,11 +93,14 @@
     {:component-did-mount #(tailspin)
      :reagent-render
      (fn []
-       [:div {:class "graph"} [:canvas#graph]])}))
+       [:div [:canvas#canvas]])}))
 
 (defn main []
   (let [playing? (re-frame/subscribe [:playing?])]
     (fn []
+        (if (q/get-sketch-by-id "canvas")
+          (q/with-sketch (q/get-sketch-by-id "canvas")
+            (if @playing? (q/start-loop) (q/no-loop))))
         [:main
           [:h1.title "Sequences"]
           [:button {:on-click #(re-frame/dispatch (if @playing? [:stop] [:start track]))}
