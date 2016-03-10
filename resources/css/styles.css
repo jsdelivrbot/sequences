@@ -1,0 +1,8 @@
+html body {
+    background: #000;
+}
+
+main > section {
+    margin: 100px auto;
+    text-align: center;
+}
