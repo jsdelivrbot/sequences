@@ -32,7 +32,7 @@
 
 (def extremes
   "Generate all extreme intervals"
-  (map #(iform %) (filter #(isExtreme? %) (range 0 500))))
+  (map #(iform %) (filter #(isExtreme? %) (range 0 1000))))
 
 (def checked (transient #{}))
 
@@ -51,13 +51,13 @@
     (syn/gain 0.05)))
 
 (def melody
-  (->> (melody/phrase (cycle [0.5]) (take 1000 iseries))
+  (->> (melody/phrase (cycle [0.2]) (take 1000 iseries))
        (melody/all :instrument synth)))
 
 (def track
   (->> melody
     (melody/wherever (comp checkInterval :pitch) :isExtreme? (melody/is true))
-    (melody/tempo (melody/bpm 120))
+    (melody/tempo (melody/bpm 100))
     (melody/where :pitch scale/G)))
   
 (defn setup []
@@ -96,18 +96,18 @@
            tail (rest marked)
            prev nil]
       (let [[x y] (dot->coord curr)
-            [_ _ extreme?] curr
-            paint (q/color (q/random 0 100) (q/random 100 200) (q/random 100 200))
-            paint2 (q/color (q/random 100 200) (q/random 0 100) (q/random 0 100))]
+            [pitch time extreme?] curr
+            paint (q/color (q/random 0 100) (q/random 0 100) (q/random 100 200))
+            paint2 (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255))
+            paint3 (q/color pitch (q/random 0 100) (q/random pitch (* pitch 10)))]
         (q/stroke-join :round)
         (q/stroke paint)
         (when prev
           (let [[x2 y2] (dot->coord prev)]
             (q/line x y x2 y2)
             (q/no-stroke)
-            (q/fill paint)
-            (if extreme? (q/fill paint2) (q/fill paint))
-            (if extreme? (q/ellipse x y 10 10) (q/ellipse x y 5 5)))))
+            (if extreme? (q/fill paint2) (q/fill paint3))
+            (q/ellipse x y (/ pitch 10) (/ pitch 10) ))))
       (when (seq tail)
         (recur (first tail)
                (rest tail)
