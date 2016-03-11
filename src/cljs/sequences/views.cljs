@@ -8,6 +8,8 @@
               [sequences.synthesis :as syn]
               [reagent.core :as reagent]))
 
+;; TODO: Can we unify leipzig/web audio with quil state? With core.async, re-frame? 
+
 (defn iform
   "Derive the infinity series interval of a particular index in the seq"
   [n]
@@ -26,23 +28,23 @@
     (syn/gain 0.05)))
 
 (def melody
-  (->> (melody/phrase (cycle [0.5]) (take 1000 iseries))
+  (->> (melody/phrase (cycle [0.5]) (take 500 iseries))
        (melody/all :instrument synth)))
 
 (def track
   (->> melody
-     (melody/tempo (melody/bpm 100))
+     (melody/tempo (melody/bpm 120))
      (melody/where :pitch scale/G)))
 
 (defn setup []
-  (q/frame-rate 60)
+  (q/frame-rate 30)
   (q/no-loop)
   (let [notes track
         dots (map #(vec [(/ (* (:pitch %) (:time %)) 20) (* (:time %) 2)]) notes)]
     {:dots dots
      :notes notes}))
 
-(def speed 0.0001)
+(def speed 0.00005)
 
 (defn move [dot]
   (let [[r a] dot]
@@ -59,24 +61,24 @@
   (q/background 0)
   (q/fill 0)
   (let [dots (:dots state)
+        offset (* (q/frame-count) speed)
         notes (:notes state)
         sync (re-frame/subscribe [:sync]) 
         playing? (re-frame/subscribe [:playing?]) 
         relative-time (-> (Date.now) (- @sync) (mod (* 1000 (melody/duration notes))) (/ 1000))
-        marked (filter #(and @playing? (<= (/ (first (rest %)) 8) relative-time)) dots)]
-    #_(if (= (count dots) (count marked)) (q/no-loop))
+        marked (filter #(and @playing? (<= (/ (first (rest %)) 2) (+ relative-time (* (/ (first (rest %)) 2) offset)))) dots)]
+    (if (= (count dots) (count marked)) (q/no-loop))
     (loop [curr (first marked)
            tail (rest marked)
            prev nil]
       (let [[x y] (dot->coord curr)
-            paint (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255))]
-        (q/stroke paint)
-        (q/stroke-weight 2)
+            paint (q/color (q/random 0 100) (q/random 100 200) (q/random 100 200))]
         (q/stroke-join :round)
-        (q/fill paint)
         (when prev
           (let [[x2 y2] (dot->coord prev)]
-            (q/line x y x2 y2))))
+            (q/stroke paint)
+            (q/line x y x2 y2)
+            (q/ellipse x y (/ x2 30) (/ y2 30)))))
       (when (seq tail)
         (recur (first tail)
                (rest tail)
@@ -87,8 +89,8 @@
     :host "canvas"
     :size [700 500]
     :setup setup
-    :update update-state
     :draw draw-state
+    :update update-state
     :middleware [middleware/fun-mode]))
 
 (defn canvas []

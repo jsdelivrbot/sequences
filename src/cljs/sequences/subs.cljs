@@ -21,3 +21,13 @@
   :sync
  	(fn [db]
    	(reaction (:sync @db))))
+  
+(re-frame/register-sub
+  :division
+ 	(fn [db]
+   	(reaction (:division @db))))
+  
+(re-frame/register-sub
+  :tempo
+ 	(fn [db]
+   	(reaction (:tempo @db))))
