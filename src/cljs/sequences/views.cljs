@@ -91,7 +91,7 @@
         playing? (re-frame/subscribe [:playing?]) 
         relative-time (-> (Date.now) (- @sync) (mod (* 1000 (melody/duration notes))) (/ 1000))
         marked (filter #(and @playing? (<= (/ (second %) 2) (+ relative-time (* (/ (second %) 2) offset)))) dots)]
-    (if (= (count dots) (count marked)) (q/no-loop))
+    (if (= (count dots) (count marked)) (re-frame/dispatch [:stop]))
     (loop [curr (first marked)
            tail (rest marked)
            prev nil]
