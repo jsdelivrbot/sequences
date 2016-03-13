@@ -42,11 +42,12 @@
     return))
 
 (defn synth [note]
-  (syn/connect->
-    (syn/add (syn/triangle (* 1.01 (:pitch note))) (syn/sine (:pitch note)))
-    ;(syn/low-pass 600)
-    (syn/adsr 0.001 0.4 0.2 0.1)
-    (syn/gain 0.04)))
+  (let [gain (re-frame/subscribe [:gain])]
+    (syn/connect->
+      (syn/add (syn/triangle (* 1.01 (:pitch note))) (syn/sine (:pitch note)))
+      ;(syn/low-pass 500)
+      (syn/adsr 0.001 0.3 0.2 0.1)
+      (syn/gain @gain))))
 
 (def melody
   (->> (melody/phrase (cycle [0.5]) (take 1000 iseries))
@@ -66,15 +67,15 @@
 (defn moveNote [note]
   (let [pitch (:pitch note)
         time (:time note)
-        speed (* @(re-frame/subscribe [:speed]) 0.00001)]
-    (merge note {:time (- time (* time speed))})))
+        spin (* @(re-frame/subscribe [:spin]) 0.00001)]
+    (merge note {:time (- time (* time spin))})))
   
 (defn updateNotes [notes]
   (map #(moveNote %) notes))
 
 (defn note->coord [note]
-  (let [speed (* @(re-frame/subscribe [:speed]) 0.00001)
-        a (+ (:time note (* (q/frame-count) speed)))
+  (let [spin (* @(re-frame/subscribe [:spin]) 0.00001)
+        a (+ (:time note (* (q/frame-count) spin)))
         r (/ (* (:pitch note) a) 20)]
     [(+ (/ (q/width) 2) (* r (q/sin a)))
      (+ (/ (q/height) 2) (* r (q/cos a)))]))
@@ -125,18 +126,25 @@
 
 (defn main []
   (let [playing? (re-frame/subscribe [:playing?])
-        speed (re-frame/subscribe [:speed])]
+        muted? (re-frame/subscribe [:muted?])]
     (fn []
         (if (q/get-sketch-by-id "canvas")
           (q/with-sketch (q/get-sketch-by-id "canvas")
             (if @playing? (q/start-loop) (q/no-loop))))
         [:main
           [:section
-            [:label "Spin"]
-            [:input {:type "number" :value @(re-frame/subscribe [:speed]) :on-change #(re-frame/dispatch [:updateSpeed (.-value (.-target %))])}]
-            [:button {:on-click #(re-frame/dispatch (if @playing? [:stop] [:start track]))}
-              (if @playing? "Stop" "Infinitize")]
-            [:button {:on-click #(clearBackground)} "Clear"]
+            [:div.actions 
+              [:div.fields 
+                [:label "Spin"]
+                [:input {:type "number" :value @(re-frame/subscribe [:spin]) :on-change #(re-frame/dispatch [:updateSpin (.-value (.-target %))])}]
+                [:label "Speed"]
+                [:input {:type "number" :min 1 :max 10 :value @(re-frame/subscribe [:speed]) :on-change #(re-frame/dispatch [:updateSpeed (.-value (.-target %))])}]]
+              [:div.buttons 
+                [:button {:on-click #(re-frame/dispatch (if @playing? [:stop] [:start track]))}
+                  (if @playing? "Stop" "Infinitize")]
+                [:button {:on-click #(clearBackground)} "Clear"]
+                [:button {:on-click #(re-frame/dispatch [:mute])} 
+                  (if @muted? "Unmute" "Mute")]]]
             [canvas]]
         ]
     )

@@ -36,18 +36,18 @@
     (let [notes (:notes db)
           context (:audiocontext db)]
       (playNote! context note)
-      ;(.log js/console note)
       (merge db {:notes (conj notes note)}))))
 
 (re-frame/register-handler
   :start
   (fn [db [_, notes]]
     (let [context (audio-context)
-          timeouts (:timeouts db)]
+          timeouts (:timeouts db)
+          speed (:speed db)]
       (doseq [{:keys [time duration instrument isExtreme?] :as note} notes]
         (let [timeout (js/setTimeout 
                         #(re-frame/dispatch [:playNote note])
-                        (* time 1000))]
+                        (* time (/ 1000 speed)))]
           (conj! timeouts timeout)))
       (merge db {:playing? true 
                  :audiocontext context
@@ -65,6 +65,11 @@
       (merge db {:playing? false :timeouts (transient [])}))))
     
 (re-frame/register-handler
+  :updateSpin
+  (fn [db [_, spin]]
+    (merge db {:spin spin})))
+  
+(re-frame/register-handler
   :updateSpeed
   (fn [db [_, speed]]
     (merge db {:speed speed})))
@@ -73,3 +78,10 @@
   :updateNotes
   (fn [db [_, notes]]
     (merge db {:notes notes})))
+  
+(re-frame/register-handler
+  :mute
+  (fn [db _]
+    (let [muted? (:muted? db)
+          gain (:gain db)]
+      (merge db {:muted? (if muted? false true) :gain (if muted? 0.04 0)}))))

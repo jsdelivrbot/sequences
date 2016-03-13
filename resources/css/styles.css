@@ -6,8 +6,13 @@ html body {
 main > section {
     margin-top: 100px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+}
+
+.fields {
+    margin-bottom: 20px;
 }
 
 #canvas {
@@ -15,13 +20,11 @@ main > section {
 }
 
 button {
-    margin-bottom: 0px;
-    float: left;
     margin-left: 20px;
 }
 
 label {
     font-size: 12px;
     text-transform: uppercase;
-    margin-right: 20px;
+    margin: 0 20px;
 }
