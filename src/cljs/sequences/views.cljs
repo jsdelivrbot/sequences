@@ -8,8 +8,6 @@
               [sequences.synthesis :as syn]
               [reagent.core :as reagent]))
 
-;; TODO: Can we unify leipzig/web audio with quil state? With core.async, re-frame? 
-
 (defn intToBin
   "Convert integer to binary string"
   [x]
@@ -45,82 +43,73 @@
 
 (defn synth [note]
   (syn/connect->
-    (syn/add (syn/sawtooth (* 1.01 (:pitch note))) (syn/sawtooth (:pitch note)))
-    (syn/low-pass 600)
+    (syn/add (syn/triangle (* 1.01 (:pitch note))) (syn/sine (:pitch note)))
+    ;(syn/low-pass 600)
     (syn/adsr 0.001 0.4 0.2 0.1)
-    (syn/gain 0.05)))
+    (syn/gain 0.04)))
 
 (def melody
-  (->> (melody/phrase (cycle [0.2]) (take 1000 iseries))
+  (->> (melody/phrase (cycle [0.5]) (take 1000 iseries))
        (melody/all :instrument synth)))
 
-(def track
+(def track 
   (->> melody
     (melody/wherever (comp checkInterval :pitch) :isExtreme? (melody/is true))
-    (melody/tempo (melody/bpm 100))
+    (melody/tempo (melody/bpm 120))
     (melody/where :pitch scale/G)))
   
 (defn setup []
-  (q/frame-rate 60)
-  (q/no-loop)
-  (let [notes track
-        dots (map #(vec [(/ (* (:pitch %) (:time %)) 20) (* (:time %) 2) (:isExtreme? %)]) notes)]
-    {:dots dots
-     :notes notes}))
-
-(def speed 0.00001)
-
-(defn move [dot]
-  (let [[r a e] dot]
-    [r (+ a (* a speed)) e]))
-
-(defn update-state [state]
-  (update-in state [:dots] #(map move %)))
-
-(defn dot->coord [[r a]]
-  [(+ (/ (q/width) 2) (* r (q/sin a)))
-   (+ (/ (q/height) 2) (* r (q/cos a)))])
- 
-(defn draw-state [state]
   (q/background 0)
-  (q/fill 0)
-  (let [dots (:dots state)
-        offset (* (q/frame-count) speed)
-        notes (:notes state)
-        sync (re-frame/subscribe [:sync]) 
-        playing? (re-frame/subscribe [:playing?]) 
-        relative-time (-> (Date.now) (- @sync) (mod (* 1000 (melody/duration notes))) (/ 1000))
-        marked (filter #(and @playing? (<= (/ (second %) 2) (+ relative-time (* (/ (second %) 2) offset)))) dots)]
-    (if (= (count dots) (count marked)) (re-frame/dispatch [:stop]))
-    (loop [curr (first marked)
-           tail (rest marked)
+  (q/frame-rate 60)
+  (q/no-loop))
+
+(defn moveNote [note]
+  (let [pitch (:pitch note)
+        time (:time note)
+        speed (* @(re-frame/subscribe [:speed]) 0.00001)]
+    (merge note {:time (- time (* time speed))})))
+  
+(defn updateNotes [notes]
+  (map #(moveNote %) notes))
+
+(defn note->coord [note]
+  (let [speed (* @(re-frame/subscribe [:speed]) 0.00001)
+        a (+ (:time note (* (q/frame-count) speed)))
+        r (/ (* (:pitch note) a) 20)]
+    [(+ (/ (q/width) 2) (* r (q/sin a)))
+     (+ (/ (q/height) 2) (* r (q/cos a)))]))
+   
+(defn draw []
+  (let [notes (re-frame/subscribe [:notes])]
+    (re-frame/dispatch [:updateNotes (updateNotes @notes)])
+    (loop [curr (first @notes)
+           tail (rest @notes)
            prev nil]
-      (let [[x y] (dot->coord curr)
-            [pitch time extreme?] curr
+      (let [[x y] (note->coord curr)
+            {:keys [pitch time isExtreme?]} curr
+            p (/ (* pitch time) 20)
             paint (q/color (q/random 0 100) (q/random 0 100) (q/random 100 200))
             paint2 (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255))
-            paint3 (q/color pitch (q/random 0 100) (q/random pitch (* pitch 10)))]
+            paint3 (q/color p (q/random 0 100) (q/random p (* p 10)))]
         (q/stroke-join :round)
         (q/stroke paint)
         (when prev
-          (let [[x2 y2] (dot->coord prev)]
+          (let [[x2 y2] (note->coord (moveNote prev))]
             (q/line x y x2 y2)
-            (q/no-stroke)
-            (if extreme? (q/fill paint2) (q/fill paint3))
-            (q/ellipse x y (/ pitch 10) (/ pitch 10) ))))
+            (q/no-stroke)))
+      (if isExtreme? (q/fill paint2) (q/fill paint3))
+      (q/ellipse x y (/ p 10) (/ p 10) ))
       (when (seq tail)
         (recur (first tail)
                (rest tail)
-               curr)))))
-             
+               (moveNote curr))))))
+            
 (defn tailspin []
   (q/sketch
     :host "canvas"
     :size [700 500]
     :setup setup
-    :draw draw-state
-    :no-start true
-    :update update-state
+    :draw draw
     :middleware [middleware/fun-mode]))
 
 (defn canvas []
@@ -129,17 +118,25 @@
      :reagent-render
      (fn []
        [:div [:canvas#canvas]])}))
+     
+(defn clearBackground []
+  (q/with-sketch (q/get-sketch-by-id "canvas")
+    (q/background 0)))
 
 (defn main []
-  (let [playing? (re-frame/subscribe [:playing?])]
+  (let [playing? (re-frame/subscribe [:playing?])
+        speed (re-frame/subscribe [:speed])]
     (fn []
         (if (q/get-sketch-by-id "canvas")
           (q/with-sketch (q/get-sketch-by-id "canvas")
             (if @playing? (q/start-loop) (q/no-loop))))
         [:main
           [:section
+            [:label "Spin"]
+            [:input {:type "number" :value @(re-frame/subscribe [:speed]) :on-change #(re-frame/dispatch [:updateSpeed (.-value (.-target %))])}]
             [:button {:on-click #(re-frame/dispatch (if @playing? [:stop] [:start track]))}
               (if @playing? "Stop" "Infinitize")]
+            [:button {:on-click #(clearBackground)} "Clear"]
             [canvas]]
         ]
     )

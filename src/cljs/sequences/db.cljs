@@ -1,6 +1,8 @@
 (ns sequences.db)
-
+  
 (def default-db
   { :audiocontext nil
   	:playing? false
-    :notes {} })
+  	:speed 1
+  	:timeouts (transient [])
+    :notes [] })

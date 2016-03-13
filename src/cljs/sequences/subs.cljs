@@ -21,3 +21,8 @@
   :sync
  	(fn [db]
    	(reaction (:sync @db))))
+
+(re-frame/register-sub
+  :speed
+ 	(fn [db]
+   	(reaction (:speed @db))))

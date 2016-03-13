@@ -1,8 +1,27 @@
 html body {
     background: #000;
+    color: white;
 }
 
 main > section {
-    margin: 100px auto;
-    text-align: center;
+    margin-top: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#canvas {
+    padding: 20px;
+}
+
+button {
+    margin-bottom: 0px;
+    float: left;
+    margin-left: 20px;
+}
+
+label {
+    font-size: 12px;
+    text-transform: uppercase;
+    margin-right: 20px;
 }
