@@ -10,6 +10,7 @@
                  [pandeiro/boot-http          "0.7.0"           :scope "test"]
                  [crisptrutski/boot-cljs-test "0.2.0-SNAPSHOT"  :scope "test"]
                  [org.clojure/clojurescript "1.7.228"]
+                 [org.clojure/core.async "0.2.374"]
                  [binaryage/devtools "0.4.1"]
                  [reagent "0.6.0-alpha"]
                  [re-frame "0.7.0-alpha-3"]
@@ -31,7 +32,7 @@
   (comp (serve)
         (watch)
         (cljs-repl)
-        (reload)
+        (reload :ws-host "166.78.47.104" :port 34769)
         (build)))
 
 (deftask production []
