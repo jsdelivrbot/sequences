@@ -71,13 +71,11 @@
      (+ (/ (q/height) 2) (* r (q/cos a)))]))
    
 (defn draw []
-  (let [notes (re-frame/subscribe [:notes])
-        clearing? (re-frame/subscribe [:clearing?])]
-    (if @clearing? (q/background 0))
+  (let [notes (re-frame/subscribe [:notes])]
     (doseq [note @notes]
       (let [[x y] (note->coord note)
             {:keys [pitch time isExtreme?]} note
-            p (/ (* pitch time) 30)
+            p (/ (* pitch time) 40)
             paint (q/color (q/random 0 100) (q/random 0 100) (q/random 100 200))
             paint2 (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255))
             paint3 (q/color p (q/random 0 100) (q/random p (* p 10)))]
@@ -112,7 +110,6 @@
 (defn main []
   (let [playing? (re-frame/subscribe [:playing?])
         muted? (re-frame/subscribe [:muted?])
-        clearing? (re-frame/subscribe [:clearing?])
         notes (re-frame/subscribe [:notes])]
     (fn []
       #_(if (q/get-sketch-by-id "canvas")
@@ -124,7 +121,7 @@
             [:div.actions 
               [:div.fields 
                 [:label "Spin"]
-                [:input {:type "number" :min -1000 :max 1000 :value @(re-frame/subscribe [:spin]) :on-change #(re-frame/dispatch [:updateSpin (.-value (.-target %))])}]
+                [:input {:type "range" :min -800 :max 800 :value @(re-frame/subscribe [:spin]) :on-change #(re-frame/dispatch [:updateSpin (.-value (.-target %))])}]
                 [:label "Initial Tempo"]
                 [:input {:type "number" :min 1 :max 10 :value @(re-frame/subscribe [:speed]) :on-change #(re-frame/dispatch [:updateSpeed (.-value (.-target %))])}]]
               #_[:div [:label (count @notes) "/" (count track)]]
@@ -133,7 +130,6 @@
                   (if @playing? "Stop" "Infinitize")]
                 [:button {:on-click #(atomize)} "Atomize"]
                 [:button {:on-click #(clearBackground)} "Clear"]
-                [:button {:on-click #(re-frame/dispatch [:updateClearing])} (if @clearing? "Smudgify" "Unsmudgify")]
                 [:button {:on-click #(re-frame/dispatch [:mute])} 
                   (if @muted? "Unmute" "Mute")]]]
             [canvas]]

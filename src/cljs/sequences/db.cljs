@@ -6,5 +6,4 @@
   	:spin 0
   	:muted? false
   	:gain 0.04
-  	:clearing? true
     :notes [] })
