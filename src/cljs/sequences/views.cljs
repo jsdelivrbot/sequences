@@ -71,12 +71,13 @@
      (+ (/ (q/height) 2) (* r (q/cos a)))]))
    
 (defn draw []
-  (let [notes (re-frame/subscribe [:notes])]
-    (loop [curr (first @notes)
-           tail (rest @notes)]
-      (let [[x y] (note->coord curr)
-            {:keys [pitch time isExtreme?]} curr
-            p (/ (* pitch time) 50)
+  (let [notes (re-frame/subscribe [:notes])
+        clearing? (re-frame/subscribe [:clearing?])]
+    (if @clearing? (q/background 0))
+    (doseq [note @notes]
+      (let [[x y] (note->coord note)
+            {:keys [pitch time isExtreme?]} note
+            p (/ (* pitch time) 30)
             paint (q/color (q/random 0 100) (q/random 0 100) (q/random 100 200))
             paint2 (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255))
             paint3 (q/color p (q/random 0 100) (q/random p (* p 10)))]
@@ -84,10 +85,7 @@
         (q/stroke paint)
       (q/no-stroke)
       (if isExtreme? (q/fill paint2) (q/fill paint3))
-      (q/ellipse x y (/ p 10) (/ p 10) ))
-      (when (seq tail)
-        (recur (first tail)
-               (rest tail))))))
+      (q/ellipse x y (/ p 10) (/ p 10) )))))
             
 (defn tailspin []
   (q/sketch
@@ -114,8 +112,12 @@
 (defn main []
   (let [playing? (re-frame/subscribe [:playing?])
         muted? (re-frame/subscribe [:muted?])
+        clearing? (re-frame/subscribe [:clearing?])
         notes (re-frame/subscribe [:notes])]
     (fn []
+      #_(if (q/get-sketch-by-id "canvas")
+        (q/with-sketch (q/get-sketch-by-id "canvas")
+          (if @playing? (q/start-loop) (q/no-loop))))
         [:main
           [:section
            [:h1 "Infinity Series"]
@@ -131,6 +133,7 @@
                   (if @playing? "Stop" "Infinitize")]
                 [:button {:on-click #(atomize)} "Atomize"]
                 [:button {:on-click #(clearBackground)} "Clear"]
+                [:button {:on-click #(re-frame/dispatch [:updateClearing])} (if @clearing? "Smudgify" "Unsmudgify")]
                 [:button {:on-click #(re-frame/dispatch [:mute])} 
                   (if @muted? "Unmute" "Mute")]]]
             [canvas]]

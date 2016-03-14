@@ -84,6 +84,12 @@
     (merge db {:notes notes})))
   
 (re-frame/register-handler
+  :updateClearing
+  (fn [db [_, clearing?]]
+    (let [value (:clearing? db)]
+      (merge db {:clearing? (not value)}))))
+    
+(re-frame/register-handler
   :mute
   (fn [db _]
     (let [muted? (:muted? db)
