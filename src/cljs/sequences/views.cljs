@@ -76,13 +76,10 @@
       (let [[x y] (note->coord note)
             {:keys [pitch time isExtreme?]} note
             p (/ (* pitch time) 40)
-            paint (q/color (q/random 0 100) (q/random 0 100) (q/random 100 200))
-            paint2 (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255))
-            paint3 (q/color p (q/random 0 100) (q/random p (* p 10)))]
-        (q/stroke-join :round)
-        (q/stroke paint)
+            paint (q/color (q/random 0 100) (q/random 100 200) (q/random 100 255))
+            paint2 (q/color p (q/random 0 100) (q/random p (* p 10)))]
       (q/no-stroke)
-      (if isExtreme? (q/fill paint2) (q/fill paint3))
+      (if isExtreme? (q/fill paint) (q/fill paint2))
       (q/ellipse x y (/ p 10) (/ p 10) )))))
             
 (defn tailspin []
@@ -112,16 +109,13 @@
         muted? (re-frame/subscribe [:muted?])
         notes (re-frame/subscribe [:notes])]
     (fn []
-      #_(if (q/get-sketch-by-id "canvas")
-        (q/with-sketch (q/get-sketch-by-id "canvas")
-          (if @playing? (q/start-loop) (q/no-loop))))
         [:main
           [:section
            [:h1 "Infinity Series"]
             [:div.actions 
               [:div.fields 
                 [:label "Spin"]
-                [:input {:type "range" :min -800 :max 800 :value @(re-frame/subscribe [:spin]) :on-change #(re-frame/dispatch [:updateSpin (.-value (.-target %))])}]
+                [:input {:type "range" :min -600 :max 600 :value @(re-frame/subscribe [:spin]) :on-change #(re-frame/dispatch [:updateSpin (.-value (.-target %))])}]
                 [:label "Initial Tempo"]
                 [:input {:type "number" :min 1 :max 10 :value @(re-frame/subscribe [:speed]) :on-change #(re-frame/dispatch [:updateSpeed (.-value (.-target %))])}]]
               #_[:div [:label (count @notes) "/" (count track)]]

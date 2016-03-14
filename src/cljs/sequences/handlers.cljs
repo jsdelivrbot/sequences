@@ -26,7 +26,7 @@
 (defn play [control-chan notes-chan note speed]
   (go
     (<! (timeout (* (:time note) (/ 1000 speed))))
-    (>! control-chan :start)
+    (>! control-chan :play)
     (>! notes-chan note)))
   
 (defn playNote! [note]
