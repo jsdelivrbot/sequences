@@ -104,7 +104,7 @@
 (defn atomize []
   (re-frame/dispatch [:updateNotes [[]]]))
   
-(defn main []
+(defn infinity []
   (let [playing? (re-frame/subscribe [:playing?])
         muted? (re-frame/subscribe [:muted?])
         notes (re-frame/subscribe [:notes])]

@@ -13,7 +13,9 @@
                  [org.clojure/core.async "0.2.374"]
                  [binaryage/devtools "0.4.1"]
                  [reagent "0.6.0-alpha"]
+                 [reagent-utils "0.1.7"]
                  [re-frame "0.7.0-alpha-3"]
+                 [secretary "1.2.3"]
                  [quil "2.3.0"]
                  [leipzig "0.10.0-SNAPSHOT"]])
 
