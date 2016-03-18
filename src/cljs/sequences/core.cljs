@@ -3,14 +3,16 @@
               [reagent.session :as session]
               [re-frame.core :as re-frame]
 	            [devtools.core :as devtools]
-              [sequences.handlers]
-              [sequences.subs]
-              [sequences.views :as views]
-              [sequences.newtonian.core :as newtonian]
               [secretary.core :as secretary :include-macros true]
               [goog.events :as events]
-              [goog.history.EventType :as HistoryEventType])
+              [goog.history.EventType :as HistoryEventType]
+              [sequences.handlers]
+              [sequences.subs]
+              [sequences.infinity.core :as infinity]
+              [sequences.newtonian.core :as newtonian])
   (:import goog.History))
+
+(enable-console-print!)
 
 (defn page []
   [(session/get :current-page)])
@@ -20,7 +22,7 @@
 (secretary/set-config! :prefix "#")
 
 (secretary/defroute "/" []
-  (session/put! :current-page views/infinity))
+  (session/put! :current-page infinity/main))
 
 (secretary/defroute "/newton" []
   (session/put! :current-page newtonian/main))

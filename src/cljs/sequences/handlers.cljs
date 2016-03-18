@@ -56,7 +56,7 @@
   (fn [db [_, notes]]
     (let [speed (:speed db)
           control-chan (chan)
-          notes-chan (chan)]
+          notes-chan (chan (count notes))]
       (main-loop control-chan notes-chan)
       (doseq [note notes] (play control-chan notes-chan note speed))
       (merge db {:playing? true :notes [] :control-chan control-chan}))))

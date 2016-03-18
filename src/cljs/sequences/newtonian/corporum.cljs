@@ -42,7 +42,6 @@
     (ParticleEmitter. p (:velocity b) (:size b)
                       (:life b) (:spread b) (:emission-rate b))))
 
-
 (extend-protocol FieldForce
   Particle
   (influence [p f]

@@ -1,4 +1,4 @@
-(ns sequences.views
+(ns sequences.infinity.core
     (:require [re-frame.core :as re-frame]
               [leipzig.melody :as melody]
               [leipzig.scale :as scale]
@@ -50,7 +50,7 @@
       (syn/gain @gain))))
 
 (def melody
-  (->> (melody/phrase (cycle [0.5]) (take 800 iseries))
+  (->> (melody/phrase (cycle [1]) (take 800 iseries))
        (melody/all :instrument synth)))
 
 (def track 
@@ -104,7 +104,7 @@
 (defn atomize []
   (re-frame/dispatch [:updateNotes [[]]]))
   
-(defn infinity []
+(defn main []
   (let [playing? (re-frame/subscribe [:playing?])
         muted? (re-frame/subscribe [:muted?])
         notes (re-frame/subscribe [:notes])]
@@ -115,6 +115,7 @@
             [:div.actions 
               [:div.fields 
                 [:label "Spin"]
+                [:input {:type "number" :min -600 :max 600 :value @(re-frame/subscribe [:spin]) :on-change #(re-frame/dispatch [:updateSpin (.-value (.-target %))])}]
                 [:input {:type "range" :min -600 :max 600 :value @(re-frame/subscribe [:spin]) :on-change #(re-frame/dispatch [:updateSpin (.-value (.-target %))])}]
                 [:label "Initial Tempo"]
                 [:input {:type "number" :min 1 :max 10 :value @(re-frame/subscribe [:speed]) :on-change #(re-frame/dispatch [:updateSpeed (.-value (.-target %))])}]]

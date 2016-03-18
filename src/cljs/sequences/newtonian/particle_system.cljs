@@ -1,8 +1,7 @@
 (ns sequences.newtonian.particle-system
   (:require [sequences.newtonian.corporum :as corporum]
-            [sequences.newtonian.utils :as utils]
-            [sequences.newtonian.corporum :refer [Particle Particle Field]]
-            [sequences.newtonian.utils :refer [Vector2D]]))
+            [sequences.newtonian.utils :as utils :refer [Vector2D]]
+            [sequences.newtonian.corporum :refer [Particle Field]]))
 
 (def max-particles (atom 400))
 

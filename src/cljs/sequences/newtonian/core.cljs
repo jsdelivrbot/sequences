@@ -11,9 +11,8 @@
   (reset! newt/fields [])
   (reset! newt/particles [])
   (reset! newt/emitters [])
-  (newt/add-emitter (Vector2D. 330.0 280.0) (Vector2D. 1 1.2))
-  (newt/add-field (Vector2D. 380.0 285.0) 1000.0)
-  (newt/add-field (Vector2D. 280.0 185.0) 120.0))
+  (newt/add-emitter (Vector2D. 350.0 250.0) (Vector2D. 1 5.5))
+  (newt/add-field (Vector2D. 350.0 300.0) 3000.0))
 
 (defn before-update [])
 
@@ -25,8 +24,9 @@
   (let [x (:x position)
         y (:y position)]
     (q/no-stroke)
-    (q/fill-int (q/color 255 64 64))
-    (q/ellipse x y 7.0 7.0)))
+    ;(q/fill-int (q/color 255 64 64))
+    (q/fill-int 0)
+    (q/ellipse x y 5 5)))
 
 (defn draw-particle [{:keys [position velocity accel]}]
   (let [x (:x position)
