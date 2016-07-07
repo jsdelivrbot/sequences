@@ -26,16 +26,12 @@
  '[pandeiro.boot-http           :refer [serve]]
  '[crisptrutski.boot-cljs-test  :refer [test-cljs]])
 
-(deftask build []
-  (comp (speak)
-        (cljs)))
-
 (deftask run []
   (comp (serve)
         (watch)
         (cljs-repl)
-        (reload :ws-host "166.78.47.104" :port 34769)
-        (build)))
+        (reload)
+        (cljs)))
 
 (deftask production []
   (task-options! cljs {:optimizations :advanced})

@@ -8,8 +8,7 @@
               [goog.history.EventType :as HistoryEventType]
               [sequences.handlers]
               [sequences.subs]
-              [sequences.infinity.core :as infinity]
-              [sequences.newtonian.core :as newtonian])
+              [sequences.infinity.core :as infinity])
   (:import goog.History))
 
 (enable-console-print!)
@@ -23,9 +22,6 @@
 
 (secretary/defroute "/" []
   (session/put! :current-page infinity/main))
-
-(secretary/defroute "/newton" []
-  (session/put! :current-page newtonian/main))
 
 ;; -------------------------
 ;; History
@@ -44,7 +40,7 @@
 (defn mount-root []
   (render [#'page] (.getElementById js/document "app")))
 
-(defn ^:export init [] 
+(defn ^:export init []
   (re-frame/dispatch-sync [:initialize-db])
   (hook-browser-navigation!)
 	(devtools/set-pref! :install-sanity-hints true)
